@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لێدانی دەنگی یوتیوب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&family=Noto+Sans+Arabic:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: آرام و کاربردی، مثل یک رادیوی جیبی
+   IDEA: یک رادیو/ضبط صوت؛ ویدیو نیست، فقط صدا
+   PICTURE: کاور گرد چرخان (مثل صفحه گرامافون) با تصویر کوچک ویدیو
+   COLOUR and TYPE: زمینه زغالی گرم، قرمز یوتیوب به‌عنوان تأکید؛ Vazirmatn
+   LAYOUT: یک ستون؛ ورودی لینک بالا، پخش‌کننده زیر آن */
+:root{color-scheme:light dark;
+  --bg:light-dark(#f4efe9,#16120f);--card:light-dark(#fff,#221c18);
+  --ink:light-dark(#1d1714,#f3ece6);--mute:light-dark(#6f645c,#a99d93);
+  --line:light-dark(#e3d9cf,#3a302a);--red:#e8322b;--red2:#ff6a4d}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Vazirmatn,'Noto Sans Arabic',Tahoma,sans-serif;overflow-x:clip}
+main{max-width:620px;margin:0 auto;padding:clamp(24px,5vw,56px) 16px 48px}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.1;margin:0 0 6px;font-weight:800;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 22px}
+form{display:flex;gap:8px;flex-wrap:wrap}
+input[type=url]{flex:1 1 260px;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);direction:ltr;text-align:left;min-height:48px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--red2);outline-offset:2px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:44px;min-width:44px}
+.go{background:var(--red);color:#fff;font-weight:600;padding:0 22px}
+.go:hover{background:#c9241e}
+.err{color:var(--red);min-height:1.6em;margin:8px 0 0;font-size:15px}
+.player{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:18px}
+.top{display:flex;gap:18px;align-items:center}
+.disc{flex:none;width:clamp(96px,26vw,140px);aspect-ratio:1;border-radius:50%;background:#000 center/cover;box-shadow:0 0 0 6px #111,0 10px 28px rgba(0,0,0,.35);position:relative}
+.disc::after{content:"";position:absolute;inset:40%;border-radius:50%;background:var(--card);box-shadow:0 0 0 3px #111}
+.playing .disc{animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.playing .disc{animation:none}}
+.meta{flex:1}
+.title{font-weight:600;font-size:18px;line-height:1.4;margin:0 0 4px;overflow-wrap:anywhere}
+.state{color:var(--mute);font-size:14px;margin:0}
+.seek{display:grid;gap:4px}
+.times{display:flex;justify-content:space-between;color:var(--mute);font-size:14px;direction:ltr;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--red);height:28px;direction:ltr}
+.ctrl{display:flex;justify-content:center;align-items:center;gap:14px}
+.round{background:transparent;color:var(--ink);font-size:15px;border:1.5px solid var(--line);border-radius:50%;width:52px;height:52px}
+.round:hover{border-color:var(--red)}
+.big{width:72px;height:72px;background:var(--red);color:#fff;border:0}
+.big:hover{background:#c9241e}
+.big svg{width:30px;height:30px}
+.opts{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;font-size:15px}
+.opts label{display:flex;align-items:center;gap:8px}
+.vol{flex:1 1 180px}
+select{font:inherit;font-size:16px;padding:6px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);min-height:40px}
+.chip{background:transparent;border:1.5px solid var(--line);color:var(--ink);padding:0 14px;font-size:15px}
+.chip[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.recent{margin-top:28px}
+.recent h2{font-size:17px;margin:0 0 10px}
+.recent ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.recent button{width:100%;text-align:right;background:var(--card);border:1px solid var(--line);color:var(--ink);padding:10px 14px;display:flex;gap:12px;align-items:center}
+.recent img{width:56px;height:32px;object-fit:cover;border-radius:6px;flex:none}
+.recent span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint{color:var(--mute);font-size:13px;margin-top:26px}
+/* پخش‌کننده یوتیوب: پنهان از دید، ولی فعال */
+#yt{position:fixed;left:-9999px;top:0;width:200px;height:200px;opacity:0;pointer-events:none}
+.moon{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1.5px solid var(--line);color:var(--ink);padding:0 14px;font-size:15px}
+.moon svg{width:20px;height:20px}
+.moon.on{background:#2d3a8c;border-color:#2d3a8c;color:#fff}
+.sleep{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:10px}
+.sleep p{margin:0;font-weight:600}
+.sleep .row{display:flex;flex-wrap:wrap;gap:8px}
+.sleep .row button{background:transparent;border:1.5px solid var(--line);color:var(--ink);padding:0 14px;font-size:15px}
+.sleep .row button:hover{border-color:#2d3a8c}
+.sleep .row .cancel{color:var(--red);border-color:var(--red)}
+.sleep .custom{display:flex;gap:8px;align-items:center}
+.sleep .custom input{width:90px;font:inherit;font-size:16px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);direction:ltr;text-align:center;min-height:44px}
+.sleep .custom button{background:#2d3a8c;color:#fff;padding:0 16px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>تەنها دەنگ، بێ وێنە</h1>
+  <p class="sub">لینکی ڤیدیۆیەکی یوتیوب دابنێ بۆ ئەوەی تەنها دەنگەکەی لێبدرێت.</p>
+
+  <form id="f">
+    <input id="url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="لینکی یوتیوب" required>
+    <button class="go" type="submit">لێدان</button>
+  </form>
+  <p class="err" id="err" role="alert"></p>
+
+  <section class="player" id="pl" hidden>
+    <div class="top">
+      <div class="disc" id="disc"></div>
+      <div class="meta">
+        <p class="title" id="ttl">بارکردن…</p>
+        <p class="state" id="st">ئامادە</p>
+      </div>
+    </div>
+    <div class="seek">
+      <input type="range" id="pos" min="0" max="0" step="1" value="0" aria-label="شوێنی لێدان">
+      <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+    </div>
+    <div class="ctrl" dir="ltr">
+      <button class="round" id="back" aria-label="١٠ چرکە بۆ دواوە">-10</button>
+      <button class="round big" id="pp" aria-label="لێدان/وەستان"></button>
+      <button class="round" id="fwd" aria-label="١٠ چرکە بۆ پێشەوە">+10</button>
+    </div>
+    <div class="opts">
+      <label class="vol">دەنگ <input type="range" id="vol" min="0" max="100" value="80" aria-label="بەرزیی دەنگ"></label>
+      <label>خێرایی
+        <select id="rate"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+      </label>
+      <button class="chip" id="loop" aria-pressed="false">دووبارەکردنەوە</button>
+      <button class="moon" id="moon" type="button" aria-expanded="false" aria-label="کاتژمێری خەو">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
+        <span id="moonTxt">خەو</span>
+      </button>
+    </div>
+    <div class="sleep" id="sleepBox" hidden>
+      <p>دوای چەند خولەک لێدان بوەستێت؟</p>
+      <div class="row" id="sleepRow">
+        <button type="button" data-min="10">١٠ خولەک</button>
+        <button type="button" data-min="15">١٥ خولەک</button>
+        <button type="button" data-min="30">٣٠ خولەک</button>
+        <button type="button" data-min="45">٤٥ خولەک</button>
+        <button type="button" data-min="60">١ کاتژمێر</button>
+        <button type="button" data-min="90">١:٣٠ کاتژمێر</button>
+        <button type="button" data-min="end">کۆتایی ئەم ڤیدیۆیە</button>
+        <button type="button" class="cancel" data-min="0" id="sleepOff" hidden>هەڵوەشاندنەوە</button>
+      </div>
+      <div class="custom">
+        <input type="number" id="sleepCustom" min="1" max="600" inputmode="numeric" placeholder="20" aria-label="خولەک">
+        <span>خولەک</span>
+        <button type="button" id="sleepSet">دانان</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="recent" id="rec" hidden>
+    <h2>دوایین گوێگیراوەکان</h2>
+    <ul id="recList"></ul>
+  </section>
+
+  <p class="hint">تێبینی: لە ئەپی یوتیوب «هاوبەشکردن» (Share) دابگرە و «تەنها دەنگ» هەڵبژێرە. هەندێک ڤیدیۆ ڕێگە نادەن لە دەرەوەی یوتیوب لێبدرێن.</p>
+</main>
+
+<div id="yt"></div>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
+let player = null, apiReady = false, pending = null, timer = null, dragging = false, loop = false, curId = null;
+
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem('yta-recent') || '[]'); } catch(e){ return []; } },
+  set(v){ try { localStorage.setItem('yta-recent', JSON.stringify(v)); } catch(e){} }
+};
+
+function parse(u){
+  u = u.trim();
+  if (/^[\w-]{11}$/.test(u)) return { id: u, t: 0 };
+  let url;
+  try { url = new URL(u.includes('://') ? u : 'https://' + u); } catch(e){ return null; }
+  const h = url.hostname.replace(/^www\.|^m\.|^music\./, '');
+  let id = null;
+  if (h === 'youtu.be') id = url.pathname.slice(1, 12);
+  else if (h.endsWith('youtube.com') || h.endsWith('youtube-nocookie.com')) {
+    id = url.searchParams.get('v');
+    const m = url.pathname.match(/\/(shorts|embed|live|v)\/([\w-]{11})/);
+    if (!id && m) id = m[2];
+  }
+  if (!id || !/^[\w-]{11}$/.test(id)) return null;
+  const tp = url.searchParams.get('t') || url.searchParams.get('start') || '0';
+  let t = 0; const mm = tp.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?/);
+  if (mm) t = (+mm[1]||0)*3600 + (+mm[2]||0)*60 + (+mm[3]||0);
+  return { id, t };
+}
+
+const fmt = s => { s = Math.max(0, Math.floor(s||0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = String(s%60).padStart(2,'0');
+  return h ? `${h}:${String(m).padStart(2,'0')}:${x}` : `${m}:${x}`; };
+
+function setPlayIcon(playing){
+  $('pp').innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+  $('pl').classList.toggle('playing', playing);
+}
+
+function tick(){
+  if (!player || !player.getDuration) return;
+  const d = player.getDuration() || 0, c = player.getCurrentTime() || 0;
+  $('pos').max = Math.floor(d);
+  if (!dragging) { $('pos').value = Math.floor(c); $('cur').textContent = fmt(c); }
+  $('dur').textContent = fmt(d);
+}
+
+const ERR = { 2:'لینکەکە دروست نییە.', 5:'ئەم ڤیدیۆیە لە وێبگەڕدا لێنادرێت.', 100:'ڤیدیۆکە نەدۆزرایەوە یان تایبەتە.', 101:'خاوەنی ڤیدیۆکە ڕێگەی نەداوە لە شوێنی تر لێبدرێت.', 150:'خاوەنی ڤیدیۆکە ڕێگەی نەداوە لە شوێنی تر لێبدرێت.', 153:'یوتیوب داواکارییەکەی قبوڵ نەکرد (هەڵەی ١٥٣).' };
+
+function onState(e){
+  const S = YT.PlayerState;
+  const map = { [S.PLAYING]:'لێدەدرێت', [S.PAUSED]:'وەستاوە', [S.BUFFERING]:'چاوەڕێبە…', [S.ENDED]:'تەواو بوو', [S.CUED]:'ئامادەی لێدان' };
+  $('st').textContent = map[e.data] || 'ئامادە';
+  setPlayIcon(e.data === S.PLAYING || e.data === S.BUFFERING);
+  if (e.data === S.PLAYING) {
+    const t = player.getVideoData && player.getVideoData().title;
+    if (t) { $('ttl').textContent = t; remember(curId, t); }
+  }
+  try { if (window.Android) Android.state(e.data === S.PLAYING || e.data === S.BUFFERING, $('ttl').textContent); } catch(x){}
+  if (e.data === S.ENDED && sleepEnd) { sleepFired(); return; }
+  if (e.data === S.ENDED && loop) { player.seekTo(0, true); player.playVideo(); }
+}
+
+function load(id, t){
+  curId = id;
+  $('err').textContent = '';
+  $('pl').hidden = false;
+  $('ttl').textContent = 'بارکردن…';
+  $('st').textContent = 'ئامادە';
+  $('disc').style.backgroundImage = `url("https://i.ytimg.com/vi/${id}/hqdefault.jpg")`;
+  setPlayIcon(false);
+  if (!apiReady) { pending = { id, t }; return; }
+  if (player) { player.loadVideoById({ videoId: id, startSeconds: t }); return; }
+  player = new YT.Player('yt', {
+    width: 200, height: 200, videoId: id,
+    playerVars: { autoplay: 1, start: t, playsinline: 1, controls: 0, rel: 0 },
+    events: {
+      onReady(){ player.setVolume(+$('vol').value); player.setPlaybackRate(+$('rate').value); player.playVideo(); },
+      onStateChange: onState,
+      onError(e){ $('err').textContent = ERR[e.data] || 'لێدان سەرکەوتوو نەبوو (کۆد ' + e.data + ').'; $('st').textContent = 'هەڵە'; setPlayIcon(false); }
+    }
+  });
+  clearInterval(timer); timer = setInterval(tick, 300);
+}
+
+function remember(id, title){
+  const list = store.get().filter(x => x.id !== id);
+  list.unshift({ id, title });
+  store.set(list.slice(0, 8)); renderRecent();
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderRecent(){
+  const list = store.get().filter(x => /^[\w-]{11}$/.test(x.id));
+  $('rec').hidden = !list.length;
+  $('recList').innerHTML = list.map(x => `<li><button type="button" data-id="${x.id}"><img alt="" src="https://i.ytimg.com/vi/${x.id}/default.jpg"><span>${esc(x.title)}</span></button></li>`).join('');
+}
+
+window.onYouTubeIframeAPIReady = () => { apiReady = true; if (pending) { const p = pending; pending = null; load(p.id, p.t); } };
+const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
+s.onerror = () => { $('err').textContent = 'پەیوەندی بە یوتیوبەوە نەکرا. ئینتەرنێتەکەت بپشکنە.'; };
+document.head.appendChild(s);
+
+$('f').addEventListener('submit', e => {
+  e.preventDefault();
+  const r = parse($('url').value);
+  if (!r) { $('err').textContent = 'ئەم لینکە وەک لینکی یوتیوب نەناسرایەوە.'; return; }
+  load(r.id, r.t);
+});
+$('pp').addEventListener('click', () => {
+  if (!player || !player.getPlayerState) return;
+  player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo();
+});
+$('back').addEventListener('click', () => player && player.seekTo(Math.max(0, player.getCurrentTime() - 10), true));
+$('fwd').addEventListener('click', () => player && player.seekTo(player.getCurrentTime() + 10, true));
+$('pos').addEventListener('input', () => { dragging = true; $('cur').textContent = fmt(+$('pos').value); });
+$('pos').addEventListener('change', () => { dragging = false; player && player.seekTo(+$('pos').value, true); });
+$('vol').addEventListener('input', () => player && player.setVolume && player.setVolume(+$('vol').value));
+$('rate').addEventListener('change', () => player && player.setPlaybackRate && player.setPlaybackRate(+$('rate').value));
+$('loop').addEventListener('click', () => { loop = !loop; $('loop').setAttribute('aria-pressed', loop); });
+$('recList').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b) load(b.dataset.id, 0); });
+document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body && player) { e.preventDefault(); $('pp').click(); } });
+
+window.pauseAudio = () => { try { player && player.pauseVideo(); } catch(e){} };
+
+// ---- کاتژمێری خەو (Sleep timer) ----
+// لە ئەپدا کاتەکە لە بەشی ئەندرۆید هەژمار دەکرێت تا کاتێک شاشە داخراوە بە وردی کار بکات
+let sleepAt = 0, sleepEnd = false, sleepUi = null, jsSleep = null;
+const hasAndroid = () => { try { return !!(window.Android && Android.sleep); } catch(e){ return false; } };
+
+function sleepLabel(){
+  if (sleepEnd) return 'کۆتایی ڤیدیۆ';
+  if (!sleepAt) return 'خەو';
+  return fmt(Math.max(0, (sleepAt - Date.now()) / 1000));
+}
+function sleepRender(){
+  const on = !!sleepAt || sleepEnd;
+  $('moon').classList.toggle('on', on);
+  $('moonTxt').textContent = sleepLabel();
+  $('sleepOff').hidden = !on;
+}
+function setSleep(min){
+  clearTimeout(jsSleep); clearInterval(sleepUi);
+  sleepAt = 0; sleepEnd = false;
+  if (hasAndroid()) { try { Android.sleep(0); } catch(e){} }
+  if (min === 'end') {
+    sleepEnd = true;
+  } else if (+min > 0) {
+    const ms = Math.round(+min * 60000);
+    sleepAt = Date.now() + ms;
+    if (hasAndroid()) { try { Android.sleep(ms); } catch(e){} }
+    else jsSleep = setTimeout(sleepFired, ms);
+    sleepUi = setInterval(() => { if (sleepAt && Date.now() >= sleepAt) sleepFired(); else sleepRender(); }, 1000);
+  }
+  sleepRender();
+  $('sleepBox').hidden = true; $('moon').setAttribute('aria-expanded', 'false');
+}
+function sleepFired(){
+  clearTimeout(jsSleep); clearInterval(sleepUi);
+  sleepAt = 0; sleepEnd = false;
+  window.pauseAudio();
+  sleepRender();
+  $('st').textContent = 'کاتژمێری خەو تەواو بوو';
+}
+window.sleepFired = sleepFired;
+
+$('moon').addEventListener('click', () => {
+  const open = $('sleepBox').hidden;
+  $('sleepBox').hidden = !open; $('moon').setAttribute('aria-expanded', String(open));
+});
+$('sleepRow').addEventListener('click', e => { const b = e.target.closest('button[data-min]'); if (b) setSleep(b.dataset.min); });
+$('sleepSet').addEventListener('click', () => {
+  const v = +$('sleepCustom').value;
+  if (v > 0 && v <= 600) setSleep(v); else $('sleepCustom').focus();
+});
+sleepRender();
+
+// لینکی که از برنامه یوتیوب «اشتراک» شده، از طرف اپ اندروید به اینجا می‌رسد
+window.playShared = txt => {
+  const m = String(txt || '').match(/https?:\/\/\S+/);
+  const link = m ? m[0] : String(txt || '').trim();
+  const r = parse(link);
+  if (!r) { $('err').textContent = 'لە دەقی هاوبەشکراودا لینکی یوتیوب نەدۆزرایەوە.'; return; }
+  $('url').value = link;
+  load(r.id, r.t);
+};
+
+setPlayIcon(false);
+renderRecent();
+}
+</script>
+</body>
+</html>
